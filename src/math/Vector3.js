@@ -4,67 +4,67 @@ class Vector3 {
         this.x = x;
         this.y = y;
         this.z = z;
-
     }
 
     normalize() {
         return this.divideScalar(this.length() || 1);
     }
-    
-    add( v ) {
-		this.x += v.x;
-		this.y += v.y;
-		this.z += v.z;
-		return this;
-	}
 
-    sub( v ) {
-		this.x -= v.x;
-		this.y -= v.y;
-		this.z -= v.z;
-		return this;
-	}
+    add(v) {
+        this.x += v.x;
+        this.y += v.y;
+        this.z += v.z;
+        return this;
+    }
 
-    subVectors( a, b ) {
+    sub(v) {
+        this.x -= v.x;
+        this.y -= v.y;
+        this.z -= v.z;
+        return this;
+    }
 
-		this.x = a.x - b.x;
-		this.y = a.y - b.y;
-		this.z = a.z - b.z;
+    subVectors(a, b) {
+        this.x = a.x - b.x;
+        this.y = a.y - b.y;
+        this.z = a.z - b.z;
 
-		return this;
+        return this;
+    }
 
-	}
+    dot(v) {
+        return this.x * v.x + this.y * v.y + this.z * v.z;
+    }
+
     lengthSq() {
+        return this.x * this.x + this.y * this.y + this.z * this.z;
+    }
 
-		return this.x * this.x + this.y * this.y + this.z * this.z;
+    cross(v) {
+        return this.crossVectors(this, v);
+    }
 
-	}
-    
-    cross( v ) {
-
-		return this.crossVectors( this, v );
-
-	}
-
-    crossVectors( a, b ) {
-		const ax = a.x, ay = a.y, az = a.z;
-		const bx = b.x, by = b.y, bz = b.z;
-		this.x = ay * bz - az * by;
-		this.y = az * bx - ax * bz;
-		this.z = ax * by - ay * bx;
-		return this;
-	}
+    crossVectors(a, b) {
+        const ax = a.x,
+            ay = a.y,
+            az = a.z;
+        const bx = b.x,
+            by = b.y,
+            bz = b.z;
+        this.x = ay * bz - az * by;
+        this.y = az * bx - ax * bz;
+        this.z = ax * by - ay * bx;
+        return this;
+    }
 
     negate() {
+        this.x = -this.x;
+        this.y = -this.y;
+        this.z = -this.z;
 
-		this.x = - this.x;
-		this.y = - this.y;
-		this.z = - this.z;
+        return this;
+    }
 
-		return this;
-
-	}
-    
     multiplyScalar(scalar) {
         this.x *= scalar;
         this.y *= scalar;

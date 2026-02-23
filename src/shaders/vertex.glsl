@@ -1,10 +1,11 @@
 
-attribute vec3 a_position;
-attribute vec3 a_normal;
-uniform mat4 u_modelViewProjection;
+attribute vec3 aPosition;
+uniform mat4 uModel;
+uniform mat4 uView;
+uniform mat4 uProjection;
 
 varying vec3 v_normal;  
     void main(void) {
-        v_normal = normalize(a_normal);
-        gl_Position = u_modelViewProjection * vec4(a_position, 1.0);
+        v_normal = aPosition;
+        gl_Position = uProjection * uView * uModel * vec4(aPosition, 1.0);
     }

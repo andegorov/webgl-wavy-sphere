@@ -1,42 +1,40 @@
-import { Vector3 } from "./Vector3";
-
 class Matrix4 {
     constructor(
+        n11, n12, n13, n14,
+        n21, n22, n23, n24,
+        n31, n32, n33, n34,
+        n41, n42, n43, n44
+    ) {
+        this.elements = new Float32Array([
+            1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1
+        ]);
+
+        if (n11 !== undefined) {
+            this.set(
                 n11, n12, n13, n14,
                 n21, n22, n23, n24,
                 n31, n32, n33, n34,
-                n41, n42, n43, n44){
-        
-        this.elements = [
-            1, 0, 0, 0,
-            0, 1, 0, 0,
-            0, 0, 1, 0,
-            0, 0, 0, 1
-        ];
-        if ( n11 !== undefined ) {
-			this.set( 
-                    n11, n12, n13, n14,
-                    n21, n22, n23, n24, 
-                    n31, n32, n33, n34,
-                    n41, n42, n43, n44 
+                n41, n42, n43, n44
             );
-		}
+        }
     }
-   
-    set( n11, n12, n13, n14,
-         n21, n22, n23, n24,
-         n31, n32, n33, n34,
-         n41, n42, n43, n44 ) {
+
+    set(
+        n11, n12, n13, n14,   
+        n21, n22, n23, n24, 
+        n31, n32, n33, n34,
+        n41, n42, n43, n44
+    ) {
         const te = this.elements;
 
-        te[ 0 ] = n11; te[ 4 ] = n12; te[ 8 ] = n13; te[ 12 ] = n14;
-        te[ 1 ] = n21; te[ 5 ] = n22; te[ 9 ] = n23; te[ 13 ] = n24;
-        te[ 2 ] = n31; te[ 6 ] = n32; te[ 10 ] = n33; te[ 14 ] = n34;
-        te[ 3 ] = n41; te[ 7 ] = n42; te[ 11 ] = n43; te[ 15 ] = n44;
+        te[0] = n11;        te[4] = n12;        te[8] = n13;        te[12] = n14;
+        te[1] = n21;        te[5] = n22;        te[9] = n23;        te[13] = n24;
+        te[2] = n31;        te[6] = n32;        te[10] = n33;        te[14] = n34;
+        te[3] = n41;        te[7] = n42;        te[11] = n43;        te[15] = n44;
         return this;
     }
-    multiply( m ) {
-        return this.multiplyMatrices( this, m );
+    multiply(m) {
+        return this.multiplyMatrices(this, m);
     }
 
     multiplyMatrices( a, b ) {
@@ -76,47 +74,24 @@ class Matrix4 {
 		te[ 15 ] = a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44;
 
 		return this;
-	}
-    
-    lookAt( eye, target, up ) {
 
-		const te = this.elements;
-		
-		_z.subVectors( eye, target );
-		
-		if ( _z.lengthSq() === 0 ) {
-			// eye and target are in the same position
-			_z.z = 1;
-		}
-
-		_z.normalize();
-		_x.crossVectors( up, _z );
-		
-		if ( _x.lengthSq() === 0 ) {
-			// up and z are parallel
-			if ( Math.abs( up.z ) === 1 ) {
-				_z.x += 0.0001;
-			} else {
-				_z.z += 0.0001;
-			}
-
-			_z.normalize();
-			_x.crossVectors( up, _z );
-
-		}
-
-		_x.normalize();
-		_y.crossVectors( _z, _x );
-
-		te[ 0 ] = _x.x; te[ 4 ] = _y.x; te[ 8 ] = _z.x;
-		te[ 1 ] = _x.y; te[ 5 ] = _y.y; te[ 9 ] = _z.y;
-		te[ 2 ] = _x.z; te[ 6 ] = _y.z; te[ 10 ] = _z.z;
-		return this;
 	}
 
-	invert() {
+    lookAt(eye, target, up) {
+        const zAxis = eye.clone().sub(target).normalize();
+        const xAxis = up.clone().cross(zAxis).normalize();
+        const yAxis = zAxis.clone().cross(xAxis);
 
-		
+        return this.set(
+            xAxis.x,            yAxis.x,            zAxis.x,            -xAxis.dot(eye),
+            xAxis.y,            yAxis.y,            zAxis.y,            -yAxis.dot(eye),
+            xAxis.z,            yAxis.z,            zAxis.z,            -zAxis.dot(eye),
+            0,            0,            0,            1
+        );
+    }
+
+    invert() {
+
 		const te = this.elements,
 
 			n11 = te[ 0 ], n21 = te[ 1 ], n31 = te[ 2 ], n41 = te[ 3 ],
@@ -124,40 +99,49 @@ class Matrix4 {
 			n13 = te[ 8 ], n23 = te[ 9 ], n33 = te[ 10 ], n43 = te[ 11 ],
 			n14 = te[ 12 ], n24 = te[ 13 ], n34 = te[ 14 ], n44 = te[ 15 ],
 
-			t11 = n23 * n34 * n42 - n24 * n33 * n42 + n24 * n32 * n43 - n22 * n34 * n43 - n23 * n32 * n44 + n22 * n33 * n44,
-			t12 = n14 * n33 * n42 - n13 * n34 * n42 - n14 * n32 * n43 + n12 * n34 * n43 + n13 * n32 * n44 - n12 * n33 * n44,
-			t13 = n13 * n24 * n42 - n14 * n23 * n42 + n14 * n22 * n43 - n12 * n24 * n43 - n13 * n22 * n44 + n12 * n23 * n44,
-			t14 = n14 * n23 * n32 - n13 * n24 * n32 - n14 * n22 * n33 + n12 * n24 * n33 + n13 * n22 * n34 - n12 * n23 * n34;
+			t1 = n11 * n22 - n21 * n12,
+			t2 = n11 * n32 - n31 * n12,
+			t3 = n11 * n42 - n41 * n12,
+			t4 = n21 * n32 - n31 * n22,
+			t5 = n21 * n42 - n41 * n22,
+			t6 = n31 * n42 - n41 * n32,
+			t7 = n13 * n24 - n23 * n14,
+			t8 = n13 * n34 - n33 * n14,
+			t9 = n13 * n44 - n43 * n14,
+			t10 = n23 * n34 - n33 * n24,
+			t11 = n23 * n44 - n43 * n24,
+			t12 = n33 * n44 - n43 * n34;
 
-		const det = n11 * t11 + n21 * t12 + n31 * t13 + n41 * t14;
+		const det = t1 * t12 - t2 * t11 + t3 * t10 + t4 * t9 - t5 * t8 + t6 * t7;
 
 		if ( det === 0 ) return this.set( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 );
 
 		const detInv = 1 / det;
 
-		te[ 0 ] = t11 * detInv;
-		te[ 1 ] = ( n24 * n33 * n41 - n23 * n34 * n41 - n24 * n31 * n43 + n21 * n34 * n43 + n23 * n31 * n44 - n21 * n33 * n44 ) * detInv;
-		te[ 2 ] = ( n22 * n34 * n41 - n24 * n32 * n41 + n24 * n31 * n42 - n21 * n34 * n42 - n22 * n31 * n44 + n21 * n32 * n44 ) * detInv;
-		te[ 3 ] = ( n23 * n32 * n41 - n22 * n33 * n41 - n23 * n31 * n42 + n21 * n33 * n42 + n22 * n31 * n43 - n21 * n32 * n43 ) * detInv;
+		te[ 0 ] = ( n22 * t12 - n32 * t11 + n42 * t10 ) * detInv;
+		te[ 1 ] = ( n31 * t11 - n21 * t12 - n41 * t10 ) * detInv;
+		te[ 2 ] = ( n24 * t6 - n34 * t5 + n44 * t4 ) * detInv;
+		te[ 3 ] = ( n33 * t5 - n23 * t6 - n43 * t4 ) * detInv;
 
-		te[ 4 ] = t12 * detInv;
-		te[ 5 ] = ( n13 * n34 * n41 - n14 * n33 * n41 + n14 * n31 * n43 - n11 * n34 * n43 - n13 * n31 * n44 + n11 * n33 * n44 ) * detInv;
-		te[ 6 ] = ( n14 * n32 * n41 - n12 * n34 * n41 - n14 * n31 * n42 + n11 * n34 * n42 + n12 * n31 * n44 - n11 * n32 * n44 ) * detInv;
-		te[ 7 ] = ( n12 * n33 * n41 - n13 * n32 * n41 + n13 * n31 * n42 - n11 * n33 * n42 - n12 * n31 * n43 + n11 * n32 * n43 ) * detInv;
+		te[ 4 ] = ( n32 * t9 - n12 * t12 - n42 * t8 ) * detInv;
+		te[ 5 ] = ( n11 * t12 - n31 * t9 + n41 * t8 ) * detInv;
+		te[ 6 ] = ( n34 * t3 - n14 * t6 - n44 * t2 ) * detInv;
+		te[ 7 ] = ( n13 * t6 - n33 * t3 + n43 * t2 ) * detInv;
 
-		te[ 8 ] = t13 * detInv;
-		te[ 9 ] = ( n14 * n23 * n41 - n13 * n24 * n41 - n14 * n21 * n43 + n11 * n24 * n43 + n13 * n21 * n44 - n11 * n23 * n44 ) * detInv;
-		te[ 10 ] = ( n12 * n24 * n41 - n14 * n22 * n41 + n14 * n21 * n42 - n11 * n24 * n42 - n12 * n21 * n44 + n11 * n22 * n44 ) * detInv;
-		te[ 11 ] = ( n13 * n22 * n41 - n12 * n23 * n41 - n13 * n21 * n42 + n11 * n23 * n42 + n12 * n21 * n43 - n11 * n22 * n43 ) * detInv;
+		te[ 8 ] = ( n12 * t11 - n22 * t9 + n42 * t7 ) * detInv;
+		te[ 9 ] = ( n21 * t9 - n11 * t11 - n41 * t7 ) * detInv;
+		te[ 10 ] = ( n14 * t5 - n24 * t3 + n44 * t1 ) * detInv;
+		te[ 11 ] = ( n23 * t3 - n13 * t5 - n43 * t1 ) * detInv;
 
-		te[ 12 ] = t14 * detInv;
-		te[ 13 ] = ( n13 * n24 * n31 - n14 * n23 * n31 + n14 * n21 * n33 - n11 * n24 * n33 - n13 * n21 * n34 + n11 * n23 * n34 ) * detInv;
-		te[ 14 ] = ( n14 * n22 * n31 - n12 * n24 * n31 - n14 * n21 * n32 + n11 * n24 * n32 + n12 * n21 * n34 - n11 * n22 * n34 ) * detInv;
-		te[ 15 ] = ( n12 * n23 * n31 - n13 * n22 * n31 + n13 * n21 * n32 - n11 * n23 * n32 - n12 * n21 * n33 + n11 * n22 * n33 ) * detInv;
+		te[ 12 ] = ( n22 * t8 - n12 * t10 - n32 * t7 ) * detInv;
+		te[ 13 ] = ( n11 * t10 - n21 * t8 + n31 * t7 ) * detInv;
+		te[ 14 ] = ( n24 * t2 - n14 * t4 - n34 * t1 ) * detInv;
+		te[ 15 ] = ( n13 * t4 - n23 * t2 + n33 * t1 ) * detInv;
 
 		return this;
+
 	}
-	transpose() {
+    transpose() {
 
 		const te = this.elements;
 		let tmp;
@@ -173,58 +157,52 @@ class Matrix4 {
 		return this;
 
 	}
-	
-	setPosition( x, y, z ) {
 
-		const te = this.elements;
+    setPosition(x, y, z) {
+        const te = this.elements;
 
-		if ( x.isVector3 ) {
+        if (x.isVector3) {
+            te[12] = x.x;
+            te[13] = x.y;
+            te[14] = x.z;
+        } else {
+            te[12] = x;
+            te[13] = y;
+            te[14] = z;
+        }
 
-			te[ 12 ] = x.x;
-			te[ 13 ] = x.y;
-			te[ 14 ] = x.z;
+        return this;
+    }
 
-		} else {
+    toFloat32Array() {
+        return this.elements;
+    }
 
-			te[ 12 ] = x;
-			te[ 13 ] = y;
-			te[ 14 ] = z;
+    toArray(array = [], offset = 0) {
+        const te = this.elements;
 
-		}
+        array[offset] = te[0];
+        array[offset + 1] = te[1];
+        array[offset + 2] = te[2];
+        array[offset + 3] = te[3];
 
-		return this;
+        array[offset + 4] = te[4];
+        array[offset + 5] = te[5];
+        array[offset + 6] = te[6];
+        array[offset + 7] = te[7];
 
-	}
+        array[offset + 8] = te[8];
+        array[offset + 9] = te[9];
+        array[offset + 10] = te[10];
+        array[offset + 11] = te[11];
 
-	toArray( array = [], offset = 0 ) {
+        array[offset + 12] = te[12];
+        array[offset + 13] = te[13];
+        array[offset + 14] = te[14];
+        array[offset + 15] = te[15];
 
-		const te = this.elements;
-
-		array[ offset ] = te[ 0 ];
-		array[ offset + 1 ] = te[ 1 ];
-		array[ offset + 2 ] = te[ 2 ];
-		array[ offset + 3 ] = te[ 3 ];
-
-		array[ offset + 4 ] = te[ 4 ];
-		array[ offset + 5 ] = te[ 5 ];
-		array[ offset + 6 ] = te[ 6 ];
-		array[ offset + 7 ] = te[ 7 ];
-
-		array[ offset + 8 ] = te[ 8 ];
-		array[ offset + 9 ] = te[ 9 ];
-		array[ offset + 10 ] = te[ 10 ];
-		array[ offset + 11 ] = te[ 11 ];
-
-		array[ offset + 12 ] = te[ 12 ];
-		array[ offset + 13 ] = te[ 13 ];
-		array[ offset + 14 ] = te[ 14 ];
-		array[ offset + 15 ] = te[ 15 ];
-
-		return array;
-
-	}
+        return array;
+    }
 }
-const _x = new Vector3();
-const _y = new Vector3();
-const _z = new Vector3();
+
 export { Matrix4 };
